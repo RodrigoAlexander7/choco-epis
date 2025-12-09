@@ -1,16 +1,586 @@
 ---
-
+const images = [
+  '/fotos-profes-estudiantes/IMG_1572.JPG',
+  '/fotos-profes-estudiantes/IMG_1613.JPG',
+  '/fotos-profes-estudiantes/IMG_1615.JPG',
+  '/fotos-profes-estudiantes/IMG_1618.JPG',
+  '/fotos-profes-estudiantes/IMG_1620.JPG',
+  '/fotos-profes-estudiantes/IMG_1624.JPG',
+  '/fotos-profes-estudiantes/IMG_1634.JPG',
+  '/fotos-profes-estudiantes/IMG_1639.JPG',
+  '/fotos-profes-estudiantes/IMG_1643.JPG',
+  '/fotos-profes-estudiantes/IMG_1646.JPG',
+  '/fotos-profes-estudiantes/IMG_1650.JPG',
+  '/fotos-profes-estudiantes/IMG_1654.JPG',
+  '/fotos-profes-estudiantes/IMG_1657.JPG',
+  '/fotos-profes-estudiantes/IMG_1663.JPG',
+  '/fotos-profes-estudiantes/IMG_1671.JPG',
+  '/fotos-profes-estudiantes/IMG_1673.JPG',
+];
 ---
 
-<html lang="en">
+<html lang="es">
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
+		<title>Portfolio Navideño - Retablo</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
 	</head>
 	<body>
-		<h1>Astro</h1>
+		<div class="snow-container" id="snow-container"></div>
+		
+		<main>
+			<h1 class="title">Recuerdos de la EPIS</h1>
+			
+			<div class="retablo-container" id="retablo">
+				<div class="retablo-top"></div>
+				<div class="retablo-body">
+					<div class="door door-left">
+						<div class="door-image"></div>
+					</div>
+					<div class="door door-right">
+						<div class="door-image"></div>
+					</div>
+					
+					<div class="interior">
+						<div class="carousel">
+							{images.map((img, index) => (
+								<img 
+									src={img} 
+									class={`carousel-img ${index === 0 ? 'active' : ''}`} 
+									alt={`Recuerdo ${index + 1}`} 
+									loading={index === 0 ? "eager" : "lazy"}
+								/>
+							))}
+						</div>
+						<div class="controls">
+							<button id="prev" class="nav-btn">❮</button>
+							<button id="next" class="nav-btn">❯</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button id="open-btn" class="action-btn">Abrir Retablo</button>
+			</div>
+			
+			<div class="audio-control">
+				<button id="music-toggle" class="music-btn" style="display: none;">
+					🎵 Pausar Música
+				</button>
+			</div>
+		</main>
+
+		<audio id="bg-music" loop>
+			<source src="/Jingle Bells (Instrumental).mp3" type="audio/mpeg">
+		</audio>
+
+		<script>
+			// Snow Effect
+			function createSnowflake() {
+				const snow = document.createElement('div');
+				snow.classList.add('snowflake');
+				snow.innerHTML = '❄';
+				snow.style.left = Math.random() * 100 + 'vw';
+				snow.style.animationDuration = Math.random() * 3 + 2 + 's';
+				snow.style.opacity = Math.random();
+				document.getElementById('snow-container').appendChild(snow);
+				
+				setTimeout(() => {
+					snow.remove();
+				}, 5000);
+			}
+			setInterval(createSnowflake, 100);
+
+			// Logic
+			const retablo = document.getElementById('retablo');
+			const openBtn = document.getElementById('open-btn');
+			const musicToggle = document.getElementById('music-toggle');
+			const audio = document.getElementById('bg-music') as HTMLAudioElement;
+			
+			let isOpen = false;
+			let isPlaying = false;
+
+			// Carousel
+			const images = document.querySelectorAll('.carousel-img');
+			let currentIndex = 0;
+			let interval;
+
+			function showImage(index) {
+				images.forEach(img => img.classList.remove('active'));
+				images[index].classList.add('active');
+			}
+
+			function nextImage() {
+				currentIndex = (currentIndex + 1) % images.length;
+				showImage(currentIndex);
+			}
+
+			function prevImage() {
+				currentIndex = (currentIndex - 1 + images.length) % images.length;
+				showImage(currentIndex);
+			}
+
+			function startCarousel() {
+				stopCarousel();
+				interval = setInterval(nextImage, 3000);
+			}
+
+			function stopCarousel() {
+				clearInterval(interval);
+			}
+
+			document.getElementById('next').addEventListener('click', () => {
+				nextImage();
+				startCarousel(); // Reset timer
+			});
+
+			document.getElementById('prev').addEventListener('click', () => {
+				prevImage();
+				startCarousel(); // Reset timer
+			});
+
+			// Open/Close Interaction
+			openBtn.addEventListener('click', () => {
+				if (!isOpen) {
+					// Open
+					retablo.classList.add('open');
+					openBtn.textContent = 'Cerrar Retablo';
+					openBtn.style.display = 'none'; // Hide button to focus on content, or change to Close
+					
+					// Attempt to play music
+					audio.play().then(() => {
+						isPlaying = true;
+						musicToggle.style.display = 'block';
+						musicToggle.textContent = '🎵 Pausar Música';
+					}).catch(err => {
+						console.log("Audio autoplay blocked", err);
+						musicToggle.style.display = 'block';
+						musicToggle.textContent = '🎵 Reproducir Música';
+					});
+
+					startCarousel();
+				} else {
+					// Close
+					retablo.classList.remove('open');
+					openBtn.textContent = 'Abrir Retablo';
+					audio.pause();
+					isPlaying = false;
+					stopCarousel();
+				}
+				isOpen = !isOpen;
+			});
+
+			musicToggle.addEventListener('click', () => {
+				if (isPlaying) {
+					audio.pause();
+					musicToggle.textContent = '🎵 Reproducir Música';
+				} else {
+					audio.play();
+					musicToggle.textContent = '🎵 Pausar Música';
+				}
+				isPlaying = !isPlaying;
+			});
+
+		</script>
+
+		<style>
+			:root {
+				--wood-dark: #3E2723;
+				--wood-medium: #5D4037;
+				--wood-light: #8D6E63;
+				--gold: #FFD700;
+				--gold-dark: #DAA520;
+				--red-festive: #C62828;
+				--red-bright: #E53935;
+				--green-festive: #2E7D32;
+				--green-bright: #43A047;
+				--blue-sky: #E3F2FD;
+				--cream: #FFF8DC;
+			}
+
+			body {
+				margin: 0;
+				padding: 0;
+				background: url('/background.jpg') center/cover fixed;
+				min-height: 100vh;
+				font-family: 'Mountains of Christmas', serif;
+				color: white;
+				overflow-x: hidden;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				justify-content: center;
+				position: relative;
+			}
+
+			body::before {
+				content: '';
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.3);
+				z-index: 0;
+			}
+
+			main {
+				position: relative;
+				z-index: 1;
+			}
+
+			.title {
+				font-family: 'Cinzel', serif;
+				font-size: clamp(2rem, 5vw, 4rem);
+				text-shadow: 
+					0 0 20px rgba(255, 215, 0, 0.8),
+					0 0 40px rgba(255, 215, 0, 0.5),
+					2px 2px 4px rgba(0, 0, 0, 0.8);
+				margin-bottom: 2rem;
+				text-align: center;
+				z-index: 10;
+				animation: titleGlow 2s ease-in-out infinite alternate;
+				letter-spacing: 2px;
+			}
+
+			@keyframes titleGlow {
+				from { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.5), 2px 2px 4px rgba(0, 0, 0, 0.8); }
+				to { text-shadow: 0 0 30px rgba(255, 215, 0, 1), 0 0 60px rgba(255, 215, 0, 0.7), 2px 2px 4px rgba(0, 0, 0, 0.8); }
+			}
+
+			/* Snow */
+			.snow-container {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				pointer-events: none;
+				z-index: 100;
+			}
+			:global(.snowflake) {
+				position: absolute;
+				top: -10px;
+				color: white;
+				font-size: 1.5em;
+				animation: fall linear forwards;
+				text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+			}
+			@keyframes fall {
+				to { transform: translateY(105vh) rotate(360deg); }
+			}
+
+			/* Retablo Structure - Horizontal */
+			.retablo-container {
+				position: relative;
+				width: 90vw;
+				max-width: 900px;
+				height: 60vh;
+				max-height: 550px;
+				perspective: 2000px;
+				margin: 0 auto;
+				z-index: 10;
+				filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.7));
+			}
+
+			/* Responsive scaling */
+			@media (min-width: 768px) {
+				.retablo-container {
+					width: 85vw;
+					max-width: 1100px;
+					height: 65vh;
+					max-height: 600px;
+				}
+			}
+
+			.retablo-top {
+				position: absolute;
+				top: -60px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 200px;
+				height: 70px;
+				background: linear-gradient(135deg, var(--wood-dark) 0%, var(--wood-medium) 50%, var(--wood-dark) 100%);
+				clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+				border: 3px solid var(--gold);
+			}
+			.retablo-top::after {
+				content: '⭐';
+				font-size: 2.5rem;
+				position: absolute;
+				top: 15px;
+				animation: starTwinkle 1.5s ease-in-out infinite;
+				filter: drop-shadow(0 0 10px gold);
+			}
+
+			@keyframes starTwinkle {
+				0%, 100% { transform: scale(1) rotate(0deg); }
+				50% { transform: scale(1.2) rotate(180deg); }
+			}
+
+			.retablo-body {
+				width: 100%;
+				height: 100%;
+				background: 
+					linear-gradient(135deg, var(--wood-dark) 0%, var(--wood-medium) 50%, var(--wood-dark) 100%);
+				position: relative;
+				border: 15px solid var(--wood-dark);
+				box-sizing: border-box;
+				box-shadow: 
+					inset 0 0 30px rgba(0, 0, 0, 0.5),
+					0 15px 50px rgba(0, 0, 0, 0.8),
+					0 0 0 3px var(--gold);
+				border-radius: 10px;
+			}
+
+			/* Wood grain texture */
+			.retablo-body::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: 
+					repeating-linear-gradient(
+						90deg,
+						transparent,
+						transparent 2px,
+						rgba(0, 0, 0, 0.1) 2px,
+						rgba(0, 0, 0, 0.1) 4px
+					);
+				pointer-events: none;
+				border-radius: 10px;
+			}
+
+			.interior {
+				width: 100%;
+				height: 100%;
+				background: 
+					radial-gradient(ellipse at center, var(--cream) 0%, var(--blue-sky) 100%);
+				overflow: hidden;
+				position: relative;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: 8px solid var(--gold);
+				box-sizing: border-box;
+				border-radius: 5px;
+				box-shadow: 
+					inset 0 0 50px rgba(255, 215, 0, 0.3),
+					inset 0 0 20px rgba(255, 255, 255, 0.5);
+			}
+
+			/* Decorative corners */
+			.interior::before,
+			.interior::after {
+				content: '✦';
+				position: absolute;
+				font-size: 2rem;
+				color: var(--gold);
+				animation: cornerSparkle 3s ease-in-out infinite;
+				text-shadow: 0 0 10px var(--gold);
+			}
+			.interior::before {
+				top: 10px;
+				left: 10px;
+			}
+			.interior::after {
+				bottom: 10px;
+				right: 10px;
+				animation-delay: 1.5s;
+			}
+
+			@keyframes cornerSparkle {
+				0%, 100% { opacity: 0.5; transform: scale(1); }
+				50% { opacity: 1; transform: scale(1.3); }
+			}
+
+			/* Doors */
+			.door {
+				position: absolute;
+				top: 0;
+				width: 50%;
+				height: 100%;
+				border: 4px solid var(--gold-dark);
+				transition: transform 1.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+				transform-style: preserve-3d;
+				z-index: 20;
+				box-sizing: border-box;
+				box-shadow: 
+					0 5px 20px rgba(0, 0, 0, 0.5);
+				border-radius: 5px;
+				overflow: hidden;
+			}
+
+			.door-image {
+				width: 100%;
+				height: 100%;
+				background-image: url('/first-img.png');
+				background-size: cover;
+				background-position: center;
+				transition: background-image 0.5s ease;
+			}
+
+			.retablo-container.open .door-image {
+				background-image: url('/puerta.webp');
+			}
+
+			.door-left {
+				left: 0;
+				transform-origin: left;
+			}
+
+			.door-left .door-image {
+				background-position: left center;
+			}
+
+			.door-right {
+				right: 0;
+				transform-origin: right;
+			}
+
+			.door-right .door-image {
+				background-position: right center;
+			}
+
+			.retablo-container.open .door-left {
+				transform: rotateY(-160deg);
+			}
+
+			.retablo-container.open .door-right {
+				transform: rotateY(160deg);
+			}
+
+
+
+			/* Carousel */
+			.carousel {
+				width: 95%;
+				height: 95%;
+				position: relative;
+				border-radius: 5px;
+				overflow: hidden;
+			}
+			.carousel-img {
+				width: 100%;
+				height: 100%;
+				object-fit: contain;
+				position: absolute;
+				top: 0;
+				left: 0;
+				opacity: 0;
+				transition: opacity 1.2s ease-in-out;
+				filter: brightness(1.05) contrast(1.1);
+			}
+			.carousel-img.active {
+				opacity: 1;
+				animation: imageZoom 3s ease-in-out;
+			}
+
+			@keyframes imageZoom {
+				0% { transform: scale(0.95); }
+				50% { transform: scale(1); }
+				100% { transform: scale(1); }
+			}
+
+			.controls {
+				position: absolute;
+				bottom: 15px;
+				width: 100%;
+				display: flex;
+				justify-content: space-between;
+				padding: 0 15px;
+				box-sizing: border-box;
+				pointer-events: none;
+			}
+			.nav-btn {
+				background: 
+					linear-gradient(135deg, rgba(255, 215, 0, 0.9) 0%, rgba(218, 165, 32, 0.9) 100%);
+				border: 2px solid white;
+				color: var(--wood-dark);
+				font-size: 1.8rem;
+				font-weight: bold;
+				cursor: pointer;
+				pointer-events: auto;
+				border-radius: 50%;
+				width: 50px;
+				height: 50px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+			}
+			.nav-btn:hover {
+				background: linear-gradient(135deg, rgba(255, 215, 0, 1) 0%, rgba(255, 223, 0, 1) 100%);
+				transform: scale(1.15);
+				box-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+			}
+
+			/* Actions */
+			.actions {
+				margin-top: 2rem;
+				z-index: 10;
+			}
+			.action-btn {
+				background: 
+					linear-gradient(135deg, var(--red-festive) 0%, var(--red-bright) 100%);
+				color: white;
+				border: 3px solid var(--gold);
+				padding: 1.2rem 2.5rem;
+				font-size: 1.8rem;
+				font-family: 'Mountains of Christmas', serif;
+				cursor: pointer;
+				border-radius: 15px;
+				transition: all 0.3s ease;
+				box-shadow: 
+					0 5px 20px rgba(0, 0, 0, 0.5),
+					0 0 20px rgba(255, 215, 0, 0.3);
+				text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+				font-weight: bold;
+			}
+			.action-btn:hover {
+				transform: scale(1.1) translateY(-3px);
+				box-shadow: 
+					0 8px 30px rgba(0, 0, 0, 0.6),
+					0 0 40px rgba(255, 215, 0, 0.6);
+				background: linear-gradient(135deg, var(--red-bright) 0%, var(--red-festive) 100%);
+			}
+
+			.audio-control {
+				position: fixed;
+				bottom: 20px;
+				right: 20px;
+				z-index: 50;
+			}
+			.music-btn {
+				background: rgba(0, 0, 0, 0.8);
+				color: white;
+				border: 2px solid var(--gold);
+				padding: 0.7rem 1.3rem;
+				cursor: pointer;
+				border-radius: 25px;
+				font-family: 'Mountains of Christmas', serif;
+				font-size: 1.1rem;
+				transition: all 0.3s ease;
+				box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+			}
+			.music-btn:hover {
+				background: rgba(0, 0, 0, 0.95);
+				transform: scale(1.05);
+				box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+			}
+		</style>
 	</body>
 </html>
