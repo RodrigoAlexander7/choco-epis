@@ -1,5 +1,12 @@
 ---
-import { Image } from 'astro:assets';
+import { Image, getImage } from 'astro:assets';
+import background from '../assets/background.jpg';
+import firstImg from '../assets/first-img.png';
+import puertaImg from '../assets/puerta.webp';
+
+const optimizedBackground = await getImage({src: background, format: 'webp'});
+const optimizedFirstImg = await getImage({src: firstImg, format: 'webp'});
+const optimizedPuertaImg = await getImage({src: puertaImg, format: 'webp'});
 
 const imageFiles = import.meta.glob<{ default: ImageMetadata }>('../assets/fotos-profes-estudiantes/*.JPG', { eager: true });
 const images = Object.entries(imageFiles).map(([path, module]) => ({
@@ -19,13 +26,13 @@ const images = Object.entries(imageFiles).map(([path, module]) => ({
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
 	</head>
-	<body>
+	<body style={`--bg-image: url(${optimizedBackground.src});`}>
 		<div class="snow-container" id="snow-container"></div>
 		
 		<main>
 			<h1 class="title">Recuerdos de la EPIS</h1>
 			
-			<div class="retablo-container" id="retablo">
+			<div class="retablo-container" id="retablo" style={`--door-closed: url(${optimizedFirstImg.src}); --door-open: url(${optimizedPuertaImg.src});`}>
 				<div class="retablo-top"></div>
 				<div class="retablo-body">
 					<div class="door door-left">
@@ -200,7 +207,7 @@ const images = Object.entries(imageFiles).map(([path, module]) => ({
 			body {
 				margin: 0;
 				padding: 0;
-				background: url('/background.jpg') center/cover fixed;
+				background: var(--bg-image) center/cover fixed;
 				min-height: 100vh;
 				font-family: 'Mountains of Christmas', serif;
 				color: white;
@@ -419,14 +426,14 @@ const images = Object.entries(imageFiles).map(([path, module]) => ({
 			.door-image {
 				width: 100%;
 				height: 100%;
-				background-image: url('/first-img.png');
+				background-image: var(--door-closed);
 				background-size: cover;
 				background-position: center;
 				transition: background-image 0.5s ease;
 			}
 
 			.retablo-container.open .door-image {
-				background-image: url('/puerta.webp');
+				background-image: var(--door-open);
 			}
 
 			.door-left {
