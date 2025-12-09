@@ -1,22 +1,11 @@
 ---
-const images = [
-  '/fotos-profes-estudiantes/IMG_1572.JPG',
-  '/fotos-profes-estudiantes/IMG_1613.JPG',
-  '/fotos-profes-estudiantes/IMG_1615.JPG',
-  '/fotos-profes-estudiantes/IMG_1618.JPG',
-  '/fotos-profes-estudiantes/IMG_1620.JPG',
-  '/fotos-profes-estudiantes/IMG_1624.JPG',
-  '/fotos-profes-estudiantes/IMG_1634.JPG',
-  '/fotos-profes-estudiantes/IMG_1639.JPG',
-  '/fotos-profes-estudiantes/IMG_1643.JPG',
-  '/fotos-profes-estudiantes/IMG_1646.JPG',
-  '/fotos-profes-estudiantes/IMG_1650.JPG',
-  '/fotos-profes-estudiantes/IMG_1654.JPG',
-  '/fotos-profes-estudiantes/IMG_1657.JPG',
-  '/fotos-profes-estudiantes/IMG_1663.JPG',
-  '/fotos-profes-estudiantes/IMG_1671.JPG',
-  '/fotos-profes-estudiantes/IMG_1673.JPG',
-];
+import { Image } from 'astro:assets';
+
+const imageFiles = import.meta.glob<{ default: ImageMetadata }>('../assets/fotos-profes-estudiantes/*.JPG', { eager: true });
+const images = Object.entries(imageFiles).map(([path, module]) => ({
+  src: module.default,
+  alt: path.split('/').pop()?.replace('.JPG', '') || 'Recuerdo'
+}));
 ---
 
 <html lang="es">
@@ -48,15 +37,19 @@ const images = [
 					
 					<div class="interior">
 						<div class="carousel">
-							{images.map((img, index) => (
-								<img 
-									src={img} 
-									class={`carousel-img ${index === 0 ? 'active' : ''}`} 
-									alt={`Recuerdo ${index + 1}`} 
-									loading={index === 0 ? "eager" : "lazy"}
-								/>
-							))}
-						</div>
+						{images.map((img, index) => (
+							<Image
+								src={img.src}
+								alt={img.alt}
+								class={`carousel-img ${index === 0 ? 'active' : ''}`}
+								loading={index === 0 ? "eager" : "lazy"}
+								format="webp"
+								quality={80}
+								widths={[800, 1200, 1600]}
+								sizes="(max-width: 768px) 100vw, 90vw"
+							/>
+						))}
+					</div>
 						<div class="controls">
 							<button id="prev" class="nav-btn">❮</button>
 							<button id="next" class="nav-btn">❯</button>
